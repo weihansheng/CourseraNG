@@ -63,22 +63,43 @@ Theta2_grad = zeros(size(Theta2));
 %
 % X(5000,400) Theta1(25*401) Theta2(10*26) 
 X = [ones(m, 1) X];
-% a2(5000,25)
-a2=sigmoid(X*Theta1');
+% z2(5000,25)
+z2=X*Theta1';
+a2=sigmoid(z2);
+% a2(5000,26)
 a2 = [ones(m, 1) a2];
 % a3(5000,10)
-a3=sigmoid(a2*Theta2');
+z3=a2*Theta2';
+a3=sigmoid(z3);
 % Index为最大值所在的位置
 % [Value,Index]=max(a3,[],2);
 % h=Index;
 h=a3;
+y_k=zeros(size(a3));
 % h(5000,10) 每一列对应一个class的h
  for i=1:num_labels
      y_K=(y == i);
+     y_k(:,i)=y_K;
      J=J+(1/m)*sum(-y_K.*log(h(:,i))-(1-y_K).*log(1-h(:,i)));
+     
  end
- J=J+(lambda/(2*m))*(sum(sum(Theta1(:,2:input_layer_size+1).^2))+sum(sum(Theta2(:,2:hidden_layer_size+1).^2)));
-
+ J=J+(lambda/(2*m))*(sum(sum(Theta1(:,2:end).^2))+sum(sum(Theta2(:,2:end).^2)));
+ 
+ 
+%  part2 compute the gradients
+% delta3(5000,10)
+delta3=a3-y_k;
+% Delta2(10,26)
+Delta2=delta3'*a2;
+Theta2_grad(:,1)=(1/m)*Delta2(:,1);
+Theta2_grad(:,2:end)=(1/m)*Delta2(:,2:end)+(lambda/m)*Theta2(:,2:end);
+% Theta2_grad
+% 算delta2(5000,25)事Theta2从第二列开始算
+delta2=delta3*Theta2(:,2:end).*sigmoidGradient(z2);
+% Delta1(25.401)
+Delta1=delta2'*X;
+Theta1_grad(:,1)=(1/m)*Delta1(:,1);
+Theta1_grad(:,2:end)=(1/m)*Delta1(:,2:end)+(lambda/m)*Theta1(:,2:end);
 
 
 
